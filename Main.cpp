@@ -44,13 +44,11 @@ public:
 		vel.y = this->dy;
 	}
 	void rotateShip(sf::Vector2i mousepos) {
-		this->angle = (atan2f(mousepos.y, mousepos.x) * 180 / PI) + 90;
+		this->angle = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
 		statek.setRotation(this->angle);
 		printf("%f\n", this->angle);
 	}
 	void newPos(float Dx, float Dy) {
-
-		//fubar
 		if (Dx != 0) {
 			if (this->dx < maxvelocity && this->dx > -maxvelocity) {
 				this->dx += Dx;
@@ -86,34 +84,62 @@ public:
 	}
 };
 
-class lasers :public ship {
+class lasers :public ship, sf::Transformable {
 private:
-	int nFired;
+	int number;
+	bool id[20];
+	float ang[20];
+	sf::Vector2f posl[20];
 	sf::Texture tekstura;
 	sf::Sprite laser[20];
+	sf::Vector2f vell[20];
+	sf::Vector2f vellconst[20];
 public:
 	lasers() {
-		nFired = 0;
+		number = 0;
 		tekstura.loadFromFile("Laser.png");
 		for (int i = 0; i < 20; i++) {
+			ang[i] = 0;
+			id[i] = 0;
+			posl[i].x = 0;
+			posl[i].y = 0;
+			vell[i].x = 0;
+			vell[i].y = 0;
+			vellconst[i].x = 0;
+			vellconst[i].y = 0;
 			laser[i].setTexture(tekstura);
 			laser[i].setTextureRect(sf::IntRect(0, 0, 9, 55));
 			laser[i].setOrigin(4.5, 22.5);
 		}
 	}
+	int getFired() {
+		return this->number;
+	}
 	void shootLaser(sf::Vector2i mousepos, sf::Vector2f pos) {
-		float ang, x, y;
-		ang = (atan2f(mousepos.y, mousepos.x) * 180 / PI) + 90;
-		x = 50 * cos(ang);
-		y = 50 * sin(ang);
-		laser[this->nFired].setPosition(pos.x - x, pos.y - y);
-		laser[this->nFired].setRotation(ang);
-
-		this->nFired += 1;
+		this->ang[number] = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
+		this->posl[number] = pos;
+		laser[number].setPosition(pos.x, pos.y);
+		laser[number].setRotation(ang[number]);
+		this->vell[number].x = 50 * cos((ang[number] + 90) * PI / 180);
+		this->vell[number].y = 50 * sin((ang[number] + 90) * PI / 180);
+		this->vellconst[number] = vell[number];
+		id[number] = 1;
+		this->number += 1;
+		if (number == 20) {
+			number = 0;
+			//add some reloading shit idk
+		}
+	}
+	void moveLaser() {
+		for (int i = 0; i < number; i++) {
+			laser[i].setPosition(posl[i].x - vell[i].x, posl[i].y - vell[i].y);
+			this->vell[i] += vellconst[i];
+		}
 	}
 	void drawLaser(sf::RenderWindow& window) {
-		for (int i = 0; i < this->nFired; i++) {
-			window.draw(laser[i]);
+		for (int i = 0; i < this->number; i++) {
+			if (id[i]) window.draw(laser[i]);
+			else break;
 		}
 	}
 };
@@ -217,15 +243,12 @@ int main() {
 			}
 
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-				if (zegarLaser.getElapsedTime().asMilliseconds() > 500.f) {
+				if (zegarLaser.getElapsedTime().asMilliseconds() > 100.f) {
 					l1.shootLaser(mousepos, pos);
 					zegarLaser.restart();
-				}
+				}	
 			}
-
-
-
-
+			l1.moveLaser();
 
 			//printf("x = %f, y = %f\n", pos.x, pos.y);
 			//printf("dx = %f, dy = %f\n", vel.x, vel.y);
@@ -234,8 +257,8 @@ int main() {
 			window.clear();
 
 			h1.drawHeart(window, stanp);
-			p1.drawShip(window);
 			l1.drawLaser(window);
+			p1.drawShip(window);
 			window.display();
 		}
 

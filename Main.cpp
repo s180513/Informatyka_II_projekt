@@ -7,7 +7,10 @@
 #define PI 3.14159265
 #define velocity 15
 #define maxvelocity 300
-
+#define lasernum 5
+#define laservelocity 50
+#define borderx 1000
+#define bordery 600
 
 class ship :public sf::Mouse {
 private:
@@ -54,22 +57,55 @@ public:
 				this->dx += Dx;
 			}
 			this->x += (dx * 0.03);
+			if (x > borderx - 10) {
+				dx = 0;
+				x = borderx - 10;
+			}
+			if (x < 200) {
+				dx = 0;
+				x = 200;
+			}
 		}
 		if (Dy != 0) {
 			if (this->dy < maxvelocity && this->dy > -maxvelocity) {
 				this->dy += Dy;
 			}
 			this->y += (dy * 0.03);
+			if (y > bordery - 10) {
+				dy = 0;
+				y = bordery - 10;
+			}
+			if (y < 10) {
+				dy = 0;
+				y = 10;
+			}
 		}
 		if (Dx == 0) {
 			if (this->dx > 0)this->dx -= velocity;
 			if (this->dx < 0)this->dx += velocity;
 			this->x += (dx * 0.03);
+			if (x > borderx - 10) {
+				dx = 0;
+				x = borderx - 10;
+			}
+			if (x < 200) {
+				dx = 0;
+				x = 200;
+			}
 		}
+
 		if (Dy == 0) {
 			if (this->dy > 0)this->dy -= velocity;
 			if (this->dy < 0)this->dy += velocity;
 			this->y += (dy * 0.03);
+			if (y > bordery - 10) {
+				dy = 0;
+				y = bordery - 10;
+			}
+			if (y < 10) {
+				dy = 0;
+				y = 10;
+			}
 		}
 	}
 	void drawStatic() {
@@ -87,18 +123,18 @@ public:
 class lasers :public ship, sf::Transformable {
 private:
 	int number;
-	bool id[20];
-	float ang[20];
-	sf::Vector2f posl[20];
+	bool id[lasernum];
+	double ang[lasernum];
+	sf::Vector2f posl[lasernum];
 	sf::Texture tekstura;
-	sf::Sprite laser[20];
-	sf::Vector2f vell[20];
-	sf::Vector2f vellconst[20];
+	sf::Sprite laser[lasernum];
+	sf::Vector2f vell[lasernum];
+	sf::Vector2f vellconst[lasernum];
 public:
 	lasers() {
 		number = 0;
 		tekstura.loadFromFile("Laser.png");
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < lasernum; i++) {
 			ang[i] = 0;
 			id[i] = 0;
 			posl[i].x = 0;
@@ -120,26 +156,29 @@ public:
 		this->posl[number] = pos;
 		laser[number].setPosition(pos.x, pos.y);
 		laser[number].setRotation(ang[number]);
-		this->vell[number].x = 50 * cos((ang[number] + 90) * PI / 180);
-		this->vell[number].y = 50 * sin((ang[number] + 90) * PI / 180);
+		this->vell[number].x = laservelocity * cos((ang[number] + 90) * PI / 180);
+		this->vell[number].y = laservelocity * sin((ang[number] + 90) * PI / 180);
 		this->vellconst[number] = vell[number];
 		id[number] = 1;
 		this->number += 1;
-		if (number == 20) {
+		if (number == lasernum) {
 			number = 0;
 			//add some reloading shit idk
 		}
 	}
 	void moveLaser() {
 		for (int i = 0; i < number; i++) {
-			laser[i].setPosition(posl[i].x - vell[i].x, posl[i].y - vell[i].y);
+			sf::Vector2f newposl = posl[i] - vell[i];
+			laser[i].setPosition(newposl);
 			this->vell[i] += vellconst[i];
+			if ((newposl.x > borderx + 30) || (newposl.x < 170) || (newposl.y > bordery + 30) || (newposl.y < -30)) {
+				id[i] = 0;
+			}
 		}
 	}
 	void drawLaser(sf::RenderWindow& window) {
-		for (int i = 0; i < this->number; i++) {
+		for (int i = 0; i < number; i++) {
 			if (id[i]) window.draw(laser[i]);
-			else break;
 		}
 	}
 };
@@ -191,7 +230,7 @@ int main() {
 	hearts h1;
 	int stan = 3;
 	int* stanp = &stan;
-	sf::RenderWindow window(sf::VideoMode(1000, 600), "~Asteroid Shooter~");
+	sf::RenderWindow window(sf::VideoMode(borderx, bordery), "~Asteroid Shooter~");
 	sf::Event event;
 
 	sf::Cursor cursor;
@@ -210,8 +249,6 @@ int main() {
 			sf::Vector2i mousepos;
 			p1.getPos(pos);
 			p1.getVel(vel);
-
-
 
 			mousepos = p1.getPosition(window);
 			mousepos.x -= (pos.x);
@@ -241,9 +278,8 @@ int main() {
 				p1.newPos(0, 0);
 				p1.drawStatic();
 			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-				if (zegarLaser.getElapsedTime().asMilliseconds() > 100.f) {
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+				if (zegarLaser.getElapsedTime().asMilliseconds() > 250.f) {
 					l1.shootLaser(mousepos, pos);
 					zegarLaser.restart();
 				}	

@@ -11,6 +11,7 @@
 #define laservelocity 50
 #define borderx 1000
 #define bordery 600
+#define asteroidnum 20
 
 class ship :public sf::Mouse {
 private:
@@ -221,12 +222,105 @@ public:
 	}
 };
 
+class rocks {
+private:
+	int id[asteroidnum];
+	sf::Sprite rock[asteroidnum];
+	sf::Texture tekstura1, tekstura2, tekstura3;
+	sf::Vector2f posa[asteroidnum];
+	sf::Vector2f vela[asteroidnum];
+	sf::Vector2f velaconst[asteroidnum];
+	std::random_device rd;
+public:
+	rocks() {
+		for (int i = 0; i < asteroidnum; i++) {
+			newPositionRock(i);
+		}
+		tekstura1.loadFromFile("Rock1.png");
+		tekstura2.loadFromFile("Rock2.png");
+		tekstura3.loadFromFile("Rock3.png");
+	}
+	void newPositionRock(int i) {
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> distx(0, 1200);
+		std::uniform_int_distribution<> disty(-200, 800);
+		std::uniform_int_distribution<> distt(1, 3);
+		std::uniform_int_distribution<> distr(0, 360);
+		std::uniform_int_distribution<> distvx(-5, 5);
+		std::uniform_int_distribution<> distvy(-5, 5);
+		std::uniform_real_distribution<> dists(0.1, 0.3);
+		int x, y;
+		double scale;
+		bool flagax = 0;
+		bool flagay = 0;
+		while (flagax == 0) {
+			x = distx(gen);
+			if (x < 150 || x > 1050) {
+				this->posa[i].x = x;
+				flagax = 1;
+			}
+		}
+		while (flagay == 0) {
+			y = disty(gen);
+			if (y < -50 || y > 650) {
+				this->posa[i].y = y;
+				flagay = 1;
+			}
+		}
+		switch (distt(gen)) {
+		case 1:
+			rock[i].setTexture(tekstura1);
+			rock[i].setTextureRect(sf::IntRect(0, 0, 320, 259));
+			rock[i].setOrigin(180, 229.5);
+			break;
+		case 2:
+			rock[i].setTexture(tekstura2);
+			rock[i].setTextureRect(sf::IntRect(0, 0, 278, 239));
+			rock[i].setOrigin(139, 119.5);
+			break;
+		case 3:
+			rock[i].setTexture(tekstura3);
+			rock[i].setTextureRect(sf::IntRect(0, 0, 249, 222));
+			rock[i].setOrigin(124.5, 111);
+			break;
+		}
+		scale = dists(gen);
+		rock[i].setScale(scale, scale);
+		rock[i].setRotation(distr(gen));
+		this->vela[i].x = distvx(gen);
+		this->vela[i].y = distvy(gen);
+		this->velaconst[i] = vela[i];
+		id[i] = 1;
+	}
+	void moveRocks() {
+		for (int i = 0; i < asteroidnum; i++) {
+			sf::Vector2f newposa = posa[i] - vela[i];
+			rock[i].setPosition(newposa);
+			this->vela[i] += velaconst[i];
+			if ((newposa.x > borderx + 200) || (newposa.x < 0) || (newposa.y > bordery + 200) || (newposa.y < - 200)) {
+				id[i] = 0;
+			}
+		}
+	}
+	void drawRocks(sf::RenderWindow& window) {
+		for (int i = 0; i < asteroidnum; i++) {
+			window.draw(rock[i]);
+		}
+	}
+	void checkId() {
+		for (int i = 0; i < asteroidnum; i++) {
+			if (id[i] == 0) newPositionRock(i);
+		}
+	}
+};
+
 int main() {
 
 	sf::Clock zegar, zegarLaser;
 
 	ship p1;
 	lasers l1;
+	rocks r1;
 	hearts h1;
 	int stan = 3;
 	int* stanp = &stan;
@@ -255,6 +349,7 @@ int main() {
 			mousepos.y -= (pos.y);
 
 			p1.rotateShip(mousepos);
+			r1.checkId();
 
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -285,7 +380,7 @@ int main() {
 				}	
 			}
 			l1.moveLaser();
-
+			r1.moveRocks();
 			//printf("x = %f, y = %f\n", pos.x, pos.y);
 			//printf("dx = %f, dy = %f\n", vel.x, vel.y);
 			//printf("mouse.x = %d, mouse.y = %d\n", mousepos.x, mousepos.y);
@@ -295,6 +390,7 @@ int main() {
 			h1.drawHeart(window, stanp);
 			l1.drawLaser(window);
 			p1.drawShip(window);
+			r1.drawRocks(window);
 			window.display();
 		}
 

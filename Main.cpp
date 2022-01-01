@@ -11,7 +11,50 @@
 #define laservelocity 50
 #define borderx 1000
 #define bordery 600
-#define asteroidnum 20
+#define asteroidnum 30
+#define heartnum 3
+
+class menu {
+private:
+	int points;
+	sf::Font czcionka;
+	sf::Text tekst[7];
+	sf::RectangleShape sidebar;
+public:
+	menu() {
+		points = 0;
+		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
+		sidebar.setSize(sf::Vector2f(200,600));
+		sidebar.setFillColor(sf::Color(30, 30, 30));
+		sidebar.setPosition(0, 0);
+		for (int i = 0; i < 7; i++) {
+			tekst[i].setFont(czcionka);
+			tekst[i].setFillColor(sf::Color::White);
+		}
+		tekst[0].setString("Difficulty:");
+		tekst[0].setPosition(10.f, 10.f);
+		tekst[1].setString("Hard");
+		tekst[1].setPosition(10.f, 50.f);
+		tekst[2].setString("Score:");
+		tekst[2].setPosition(10.f, 100.f);
+		//cords for points (10.f,140.f)
+		tekst[3].setString("Lives:");
+		tekst[3].setPosition(10.f, 190.f);
+		tekst[4].setString("Ammunition:");
+		tekst[4].setPosition(10.f, 300.f);
+		tekst[5].setString("F1 - Help");
+		tekst[5].setPosition(10.f, bordery-80);
+		tekst[5].setCharacterSize(20);
+		tekst[6].setString("Esc - Exit");
+		tekst[6].setPosition(10.f, bordery-40);
+		tekst[6].setCharacterSize(20);
+	}
+
+	void drawMenu(sf::RenderWindow& window) {
+		window.draw(sidebar);
+		for (int i = 0; i < 7; i++) window.draw(tekst[i]);
+	}
+};
 
 class ship :public sf::Mouse {
 private:
@@ -20,6 +63,8 @@ private:
 	float dx;
 	float dy;
 	float angle;
+	bool id;
+	int counter;
 	sf::Texture tekstura;
 	sf::Sprite statek;
 public:
@@ -32,8 +77,13 @@ public:
 		dx = 0;
 		dy = 0;
 		angle = 0;
+		id = 0;
+		counter = 0;
 		statek.setOrigin(19.5, 33.5);
 		statek.setPosition(x, y);
+	}
+	sf::Sprite getStatek() {
+		return statek;
 	}
 	void getPos(sf::Vector2f& pos) {
 		pos.x = this->x;
@@ -50,7 +100,6 @@ public:
 	void rotateShip(sf::Vector2i mousepos) {
 		this->angle = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
 		statek.setRotation(this->angle);
-		printf("%f\n", this->angle);
 	}
 	void newPos(float Dx, float Dy) {
 		if (Dx != 0) {
@@ -109,6 +158,12 @@ public:
 			}
 		}
 	}
+	bool getId() {
+		return id;
+	}
+	void statekImmune() {
+		id = 1;
+	}
 	void drawStatic() {
 		tekstura.loadFromFile("Ship.png");
 	}
@@ -116,8 +171,15 @@ public:
 		tekstura.loadFromFile("Shipmove.png");
 	}
 	void drawShip(sf::RenderWindow& window) {
+		if (id) {
+			counter++;
+			if (counter == 100) {
+				id = 0;
+				counter = 0;
+			}
+		}
 		statek.setPosition(x, y);
-		window.draw(statek);
+		if (counter % 2 == 0) window.draw(statek);
 	}
 };
 
@@ -148,6 +210,15 @@ public:
 			laser[i].setTextureRect(sf::IntRect(0, 0, 9, 55));
 			laser[i].setOrigin(4.5, 22.5);
 		}
+	}
+	sf::Sprite getLaser(int i) {
+		return laser[i];
+	}
+	bool getId(int i) {
+		return id[i];
+	}
+	void deleteLaser(int i) {
+		this->id[i] = 0;
 	}
 	int getFired() {
 		return this->number;
@@ -187,8 +258,10 @@ public:
 class hearts {
 private:
 	sf::ConvexShape Heart[3];
+	int stan;
 public:
 	hearts() {
+		stan = heartnum;
 		for (int i = 0; i < 3; i++) {
 			Heart[i].setPointCount(10);
 			Heart[i].setFillColor(sf::Color::Red);
@@ -205,18 +278,18 @@ public:
 			Heart[i].setPoint(8, sf::Vector2f(13.f, 3.f));
 			Heart[i].setPoint(9, sf::Vector2f(7.f, 3.f));
 		}
-		Heart[0].setPosition(15.f, 300.f);
-		Heart[1].setPosition(60.f, 300.f);
-		Heart[2].setPosition(105.f, 300.f);
+		Heart[0].setPosition(20.f, 240.f);
+		Heart[1].setPosition(80.f, 240.f);
+		Heart[2].setPosition(140.f, 240.f);
 	}
-	void addHeart(int* stan) {
-		if (*stan < 3) *stan += 1;
+	void addHeart() {
+		if (stan < 3) stan += 1;
 	}
-	void subHeart(int* stan) {
-		if (*stan > 0) *stan -= 1;
+	void subHeart() {
+		if (stan > 0) stan -= 1;
 	}
-	void drawHeart(sf::RenderWindow& window, int* stan) {
-		for (int i = 0; i < *stan; i++) {
+	void drawHeart(sf::RenderWindow& window) {
+		for (int i = 0; i < stan; i++) {
 			window.draw(Heart[i]);
 		}
 	}
@@ -224,9 +297,11 @@ public:
 
 class rocks {
 private:
-	int id[asteroidnum];
+	bool id[asteroidnum];
+	bool expid[asteroidnum];
+	int counter[asteroidnum];
 	sf::Sprite rock[asteroidnum];
-	sf::Texture tekstura1, tekstura2, tekstura3;
+	sf::Texture tekstura1, tekstura2, tekstura3, tekstura4;
 	sf::Vector2f posa[asteroidnum];
 	sf::Vector2f vela[asteroidnum];
 	sf::Vector2f velaconst[asteroidnum];
@@ -235,10 +310,31 @@ public:
 	rocks() {
 		for (int i = 0; i < asteroidnum; i++) {
 			newPositionRock(i);
+			counter[i] = 0;
+			expid[i] = 0;
 		}
 		tekstura1.loadFromFile("Rock1.png");
 		tekstura2.loadFromFile("Rock2.png");
 		tekstura3.loadFromFile("Rock3.png");
+		tekstura4.loadFromFile("Explosion.png");
+	}
+	sf::Sprite getRock(int i) {
+		return rock[i];
+	}
+	bool getId(int i) {
+		return id[i];
+	}
+	bool getExpId(int i) {
+		return expid[i];
+	}
+	void makeExplode(int i) {
+		rock[i].setTexture(tekstura4);
+		expid[i] = 1;
+	}
+	void deleteRock(int i) {
+		id[i] = 0;
+		expid[i] = 0;
+		counter[i] = 0;
 	}
 	void newPositionRock(int i) {
 		std::mt19937 gen(rd());
@@ -255,14 +351,14 @@ public:
 		bool flagay = 0;
 		while (flagax == 0) {
 			x = distx(gen);
-			if (x < 150 || x > 1050) {
+			if (x < 150 || x > borderx+50) {
 				this->posa[i].x = x;
 				flagax = 1;
 			}
 		}
 		while (flagay == 0) {
 			y = disty(gen);
-			if (y < -50 || y > 650) {
+			if (y < -50 || y > bordery+50) {
 				this->posa[i].y = y;
 				flagay = 1;
 			}
@@ -302,14 +398,35 @@ public:
 			}
 		}
 	}
+	void checkId() {
+		for (int i = 0; i < asteroidnum; i++) {
+			if (id[i] == 0) newPositionRock(i);
+		}
+	}
 	void drawRocks(sf::RenderWindow& window) {
+		for (int i = 0; i < asteroidnum; i++) {
+			if (expid[i]) {
+				counter[i]++;
+				sf::Vector2f newscale;
+				newscale = rock[i].getScale();
+				rock[i].setScale(1.01*newscale.x, 1.01*newscale.y);
+			}
+			if (counter[i] == 10) deleteRock(i);
+		}
 		for (int i = 0; i < asteroidnum; i++) {
 			window.draw(rock[i]);
 		}
 	}
-	void checkId() {
-		for (int i = 0; i < asteroidnum; i++) {
-			if (id[i] == 0) newPositionRock(i);
+};
+
+class ammo {
+private:
+	sf::RectangleShape bullet[lasernum];
+public:
+	ammo() {
+		for (int i = 0; i < lasernum; i++) {
+			bullet[i].setFillColor(sf::Color::White);
+			bullet[i].setSize(sf::Vector2f(15, 30));
 		}
 	}
 };
@@ -322,8 +439,7 @@ int main() {
 	lasers l1;
 	rocks r1;
 	hearts h1;
-	int stan = 3;
-	int* stanp = &stan;
+	menu m1;
 	sf::RenderWindow window(sf::VideoMode(borderx, bordery), "~Asteroid Shooter~");
 	sf::Event event;
 
@@ -381,16 +497,38 @@ int main() {
 			}
 			l1.moveLaser();
 			r1.moveRocks();
+
+
+			for (int i = 0; i < lasernum; i++) {
+				for (int j = 0; j < asteroidnum; j++) {
+					if (r1.getExpId(j) == 0 && r1.getId(j) && l1.getId(i) && (l1.getLaser(i).getGlobalBounds().intersects(r1.getRock(j).getGlobalBounds()))) {
+						r1.makeExplode(j);
+						l1.deleteLaser(i);
+						//add points
+					}
+				}
+			}
+			for (int i = 0; i < asteroidnum; i++) {
+				if (p1.getId() == 0 && r1.getExpId(i) == 0 && p1.getStatek().getGlobalBounds().intersects(r1.getRock(i).getGlobalBounds())) {
+					h1.subHeart();
+					p1.statekImmune();
+				}
+			}
+			
+
+
 			//printf("x = %f, y = %f\n", pos.x, pos.y);
 			//printf("dx = %f, dy = %f\n", vel.x, vel.y);
 			//printf("mouse.x = %d, mouse.y = %d\n", mousepos.x, mousepos.y);
 			zegar.restart();
 			window.clear();
 
-			h1.drawHeart(window, stanp);
+			
 			l1.drawLaser(window);
 			p1.drawShip(window);
 			r1.drawRocks(window);
+			m1.drawMenu(window);
+			h1.drawHeart(window);
 			window.display();
 		}
 

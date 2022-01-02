@@ -3,56 +3,196 @@
 #include <time.h>
 #include <random>
 #include <math.h>
+#include <string>
 
 #define PI 3.14159265
 #define velocity 15
 #define maxvelocity 300
-#define lasernum 5
+#define lasernum 10
 #define laservelocity 50
 #define borderx 1000
 #define bordery 600
 #define asteroidnum 30
 #define heartnum 3
 
+class startmenu {
+private:
+	bool menuflaga;
+	char name[20];
+	int num;
+	int diffpos;
+	sf::Font czcionka;
+	sf::Text tekst[6];
+	sf::RectangleShape menuwindow, diffwindow[3];
+public:
+	startmenu() {
+		menuflaga = 0;
+		num = 0;
+		diffpos = 4;
+		for (int i = 0; i < 20; i++) name[i] = 32;
+		menuwindow.setSize(sf::Vector2f(600, 400));
+		menuwindow.setFillColor(sf::Color(80, 80, 80));
+		menuwindow.setPosition(300, 100);
+		menuwindow.setOutlineThickness(5);
+		menuwindow.setOutlineColor(sf::Color(140, 140, 140));
+		for (int i = 0; i < 3; i++) {
+			diffwindow[i].setFillColor(sf::Color(200, 200, 200));
+			diffwindow[i].setOutlineThickness(5);
+			diffwindow[i].setOutlineColor(sf::Color(140, 140, 140));
+			diffwindow[i].setSize(sf::Vector2f(140, 60));
+		}
+		diffwindow[0].setPosition(327, 378);
+		diffwindow[1].setPosition(522, 378);
+		diffwindow[2].setPosition(722, 378);
+		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
+		for (int i = 0; i < 6; i++) {
+			tekst[i].setFont(czcionka);
+			tekst[i].setFillColor(sf::Color::White);
+		}
+		tekst[0].setString("~Asteroid Shooter~");
+		tekst[0].setPosition(358, 140);
+		tekst[0].setCharacterSize(70);
+		tekst[1].setString("Name: ");
+		tekst[1].setPosition(350, 250);
+		tekst[1].setCharacterSize(50);
+
+		tekst[2].setPosition(470, 250);
+		tekst[2].setCharacterSize(50);
+		
+		tekst[3].setString("Easy");
+		tekst[3].setPosition(360, 375);
+		tekst[3].setCharacterSize(50);
+		tekst[4].setString("Normal");
+		tekst[4].setPosition(530, 375);
+		tekst[4].setCharacterSize(50);
+		tekst[4].setFillColor(sf::Color(80,80,80));
+		tekst[5].setString("Hard");
+		tekst[5].setPosition(750, 375);
+		tekst[5].setCharacterSize(50);
+
+	}
+	bool getFlaga() {
+		return menuflaga;
+	}
+	int getDiffPos() {
+		return diffpos;
+	}
+	void closeStart() {
+		menuflaga++;
+	}
+	void setChar(char znak) {
+		name[num] = znak;
+		if (num < 20) num++;
+		std::string str(name);
+		tekst[2].setString(str);
+	}
+	void setDiff(bool direction) {
+		if (direction) {
+			if (diffpos != 5) {
+				tekst[diffpos].setFillColor(sf::Color::White);
+				diffpos++;
+				tekst[diffpos].setFillColor(sf::Color(80, 80, 80));
+			}
+		}
+		if (direction == 0) {
+			if (diffpos != 3) {
+				tekst[diffpos].setFillColor(sf::Color::White);
+				diffpos--;
+				tekst[diffpos].setFillColor(sf::Color(80, 80, 80));
+			}
+		}
+	}
+	void drawStart(sf::RenderWindow& window) {
+		window.draw(menuwindow);
+		for (int i = 0; i < 3; i++) window.draw(diffwindow[i]);
+		for (int i = 0; i < 6; i++) {
+			window.draw(tekst[i]);
+		}
+	}
+};
+
+class helpmenu {
+private:
+	bool menuflaga;
+	sf::Font czcionka;
+	sf::Text tekst[6];
+	sf::RectangleShape menuwindow;
+public:
+	helpmenu() {
+		menuflaga = 0;
+		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
+		menuwindow.setSize(sf::Vector2f(900, 500));
+		menuwindow.setFillColor(sf::Color(30, 30, 30));
+		menuwindow.setPosition(50, 50);
+		for (int i = 0; i < 6; i++) {
+			tekst[i].setFont(czcionka);
+			tekst[i].setFillColor(sf::Color::White);
+		}
+	}
+	void drawMenu(sf::RenderWindow& window) {
+		window.draw(menuwindow);
+		//for (int i = 0; i < 5; i++) window.draw(tekst[i]);
+	}
+};
+
 class menu {
 private:
 	int points;
+	int difficulty;
 	sf::Font czcionka;
-	sf::Text tekst[7];
+	sf::Text tekst[8];
 	sf::RectangleShape sidebar;
 public:
 	menu() {
 		points = 0;
+		difficulty = 0;
 		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
 		sidebar.setSize(sf::Vector2f(200,600));
 		sidebar.setFillColor(sf::Color(30, 30, 30));
 		sidebar.setPosition(0, 0);
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 8; i++) {
 			tekst[i].setFont(czcionka);
 			tekst[i].setFillColor(sf::Color::White);
 		}
 		tekst[0].setString("Difficulty:");
 		tekst[0].setPosition(10.f, 10.f);
-		tekst[1].setString("Hard");
+		tekst[1].setString("---");
 		tekst[1].setPosition(10.f, 50.f);
 		tekst[2].setString("Score:");
 		tekst[2].setPosition(10.f, 100.f);
-		//cords for points (10.f,140.f)
-		tekst[3].setString("Lives:");
-		tekst[3].setPosition(10.f, 190.f);
-		tekst[4].setString("Ammunition:");
-		tekst[4].setPosition(10.f, 300.f);
-		tekst[5].setString("F1 - Help");
-		tekst[5].setPosition(10.f, bordery-80);
-		tekst[5].setCharacterSize(20);
-		tekst[6].setString("Esc - Exit");
-		tekst[6].setPosition(10.f, bordery-40);
+		tekst[3].setString(std::to_string(points));
+		tekst[3].setPosition(10.f, 140.f);
+		tekst[4].setString("Lives:");
+		tekst[4].setPosition(10.f, 190.f);
+		tekst[5].setString("Ammunition:");
+		tekst[5].setPosition(10.f, 300.f);
+		tekst[6].setString("F1 - Help");
+		tekst[6].setPosition(10.f, bordery-80);
 		tekst[6].setCharacterSize(20);
+		tekst[7].setString("Esc - Exit");
+		tekst[7].setPosition(10.f, bordery-40);
+		tekst[7].setCharacterSize(20);
 	}
-
+	void setDifficulty(int i) {
+		switch (i) {
+		case 3:
+			tekst[1].setString("Easy");
+			break;
+		case 4:
+			tekst[1].setString("Normal");
+			break;
+		case 5:
+			tekst[1].setString("Hard");
+			break;
+		}
+	}
+	void addPoints() {
+		points += 100;
+		tekst[3].setString(std::to_string(points));
+	}
 	void drawMenu(sf::RenderWindow& window) {
 		window.draw(sidebar);
-		for (int i = 0; i < 7; i++) window.draw(tekst[i]);
+		for (int i = 0; i < 8; i++) window.draw(tekst[i]);
 	}
 };
 
@@ -300,6 +440,7 @@ private:
 	bool id[asteroidnum];
 	bool expid[asteroidnum];
 	int counter[asteroidnum];
+	int difficulty;
 	sf::Sprite rock[asteroidnum];
 	sf::Texture tekstura1, tekstura2, tekstura3, tekstura4;
 	sf::Vector2f posa[asteroidnum];
@@ -308,6 +449,7 @@ private:
 	std::random_device rd;
 public:
 	rocks() {
+		difficulty = 1;
 		for (int i = 0; i < asteroidnum; i++) {
 			newPositionRock(i);
 			counter[i] = 0;
@@ -385,6 +527,8 @@ public:
 		rock[i].setRotation(distr(gen));
 		this->vela[i].x = distvx(gen);
 		this->vela[i].y = distvy(gen);
+		this->vela[i].x *= difficulty;
+		this->vela[i].y *= difficulty;
 		this->velaconst[i] = vela[i];
 		id[i] = 1;
 	}
@@ -401,6 +545,19 @@ public:
 	void checkId() {
 		for (int i = 0; i < asteroidnum; i++) {
 			if (id[i] == 0) newPositionRock(i);
+		}
+	}
+	void setDifficulty(int i) {
+		switch (i) {
+		case 3:
+			this->difficulty = 0.5;
+			break;
+		case 4:
+			this->difficulty = 1;
+			break;
+		case 5:
+			this->difficulty = 2;
+			break;
 		}
 	}
 	void drawRocks(sf::RenderWindow& window) {
@@ -426,7 +583,22 @@ public:
 	ammo() {
 		for (int i = 0; i < lasernum; i++) {
 			bullet[i].setFillColor(sf::Color::White);
-			bullet[i].setSize(sf::Vector2f(15, 30));
+			bullet[i].setSize(sf::Vector2f(5, 30));
+		}
+		bullet[0].setPosition(15, 345);
+		bullet[1].setPosition(30, 345);
+		bullet[2].setPosition(45, 345);
+		bullet[3].setPosition(60, 345);
+		bullet[4].setPosition(75, 345);
+		bullet[5].setPosition(90, 345);
+		bullet[6].setPosition(105, 345);
+		bullet[7].setPosition(120, 345);
+		bullet[8].setPosition(135, 345);
+		bullet[9].setPosition(150, 345);
+	}
+	void drawAmmo(sf::RenderWindow& window, int n) {
+		for (int i = 0; i < n; i++) {
+			window.draw(bullet[i]);
 		}
 	}
 };
@@ -434,27 +606,68 @@ public:
 int main() {
 
 	sf::Clock zegar, zegarLaser;
-
 	ship p1;
 	lasers l1;
 	rocks r1;
 	hearts h1;
+	ammo a1;
 	menu m1;
-	sf::RenderWindow window(sf::VideoMode(borderx, bordery), "~Asteroid Shooter~");
+	startmenu sm1;
+	sf::RenderWindow window(sf::VideoMode(borderx, bordery), "~Asteroid Shooter~",sf::Style::Close);
 	sf::Event event;
-
 	sf::Cursor cursor;
-	if (cursor.loadFromSystem(sf::Cursor::Cross))
-		window.setMouseCursor(cursor);
+	cursor.loadFromSystem(sf::Cursor::Cross);
+	window.setMouseCursor(cursor);
 
 	while (window.isOpen()) {
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::EventType::Closed)
 				window.close();
 		}
+		
+		if (sm1.getFlaga() == 0 && zegar.getElapsedTime().asMilliseconds() > 120.f) {
+			if (event.type == sf::Event::TextEntered)
+			{
+				char znak = static_cast<char>(event.text.unicode);
+				if (znak == 13) {
+					m1.setDifficulty(sm1.getDiffPos());
+					r1.setDifficulty(sm1.getDiffPos());
+					sm1.closeStart();
+				}
+				else if (znak == 27) {
+					printf("chujesc");
+				}
+				else sm1.setChar(znak);
+			}
+			if (event.type == sf::Event::KeyPressed)
+			{
+				if (event.key.code == sf::Keyboard::Left)
+				{
+					sm1.setDiff(0);
+				}
+				if (event.key.code == sf::Keyboard::Right)
+				{
+					sm1.setDiff(1);
+				}
+				if (event.key.code == sf::Keyboard::F1)
+				{
+					printf("chujf1");
+				}
+			}
 
-		if (zegar.getElapsedTime().asMilliseconds() > 30.f) {
 
+			window.clear();
+			zegar.restart();
+			m1.drawMenu(window);
+			h1.drawHeart(window);
+			a1.drawAmmo(window, lasernum);
+			sm1.drawStart(window);
+			window.display();
+		}
+
+
+		if (sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {
+			
 			sf::Vector2f pos, vel;
 			sf::Vector2i mousepos;
 			p1.getPos(pos);
@@ -493,7 +706,7 @@ int main() {
 				if (zegarLaser.getElapsedTime().asMilliseconds() > 250.f) {
 					l1.shootLaser(mousepos, pos);
 					zegarLaser.restart();
-				}	
+				}
 			}
 			l1.moveLaser();
 			r1.moveRocks();
@@ -504,7 +717,7 @@ int main() {
 					if (r1.getExpId(j) == 0 && r1.getId(j) && l1.getId(i) && (l1.getLaser(i).getGlobalBounds().intersects(r1.getRock(j).getGlobalBounds()))) {
 						r1.makeExplode(j);
 						l1.deleteLaser(i);
-						//add points
+						m1.addPoints();
 					}
 				}
 			}
@@ -514,7 +727,7 @@ int main() {
 					p1.statekImmune();
 				}
 			}
-			
+
 
 
 			//printf("x = %f, y = %f\n", pos.x, pos.y);
@@ -523,12 +736,13 @@ int main() {
 			zegar.restart();
 			window.clear();
 
-			
+
 			l1.drawLaser(window);
 			p1.drawShip(window);
 			r1.drawRocks(window);
 			m1.drawMenu(window);
 			h1.drawHeart(window);
+			a1.drawAmmo(window, lasernum - l1.getFired());
 			window.display();
 		}
 

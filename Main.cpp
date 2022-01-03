@@ -15,6 +15,13 @@
 #define asteroidnum 30
 #define heartnum 3
 
+struct player {
+	char name[20];
+	int difficulty;
+	int points;
+	int lives;
+};
+
 class startmenu {
 private:
 	bool menuflaga;
@@ -115,7 +122,7 @@ class helpmenu {
 private:
 	bool menuflaga;
 	sf::Font czcionka;
-	sf::Text tekst[6];
+	sf::Text tekst[2];
 	sf::RectangleShape menuwindow;
 public:
 	helpmenu() {
@@ -124,14 +131,95 @@ public:
 		menuwindow.setSize(sf::Vector2f(900, 500));
 		menuwindow.setFillColor(sf::Color(30, 30, 30));
 		menuwindow.setPosition(50, 50);
-		for (int i = 0; i < 6; i++) {
+		menuwindow.setOutlineThickness(5);
+		menuwindow.setOutlineColor(sf::Color(140, 140, 140));
+		for (int i = 0; i < 2; i++) {
 			tekst[i].setFont(czcionka);
+			tekst[i].setCharacterSize(20);
 			tekst[i].setFillColor(sf::Color::White);
 		}
+		tekst[0].setPosition(70, 60);
+		tekst[0].setString("How to start:\nWrite your name and choose the difficulty using left and right keys. \nStart the game by pressing Enter. \n\nHow to Play:\nShoot asteroids to get points. Each shot asteroid is worth 100 points. \nWhen you get hit by an asteroid you loose a life. \nIf you loose all 3 hearts, it's game over.\n\nControls:\nWASD - movement keys\nLMB - shooting\nMouse - aiming\nF1 - Help\nEsc - Exiting the game");
+		tekst[1].setPosition(70, 500);
+		tekst[1].setString("~Press F1 to exit this window~");
+	}
+	bool getFlaga() {
+		return menuflaga;
+	}
+	void setFlaga(bool i) {
+		menuflaga = i;
 	}
 	void drawMenu(sf::RenderWindow& window) {
 		window.draw(menuwindow);
-		//for (int i = 0; i < 5; i++) window.draw(tekst[i]);
+		window.draw(tekst[0]);
+		window.draw(tekst[1]);
+	}
+};
+
+class escapemenu {
+private:
+	bool menuflaga;
+	bool choice;
+	sf::Font czcionka;
+	sf::Text tekst[3];
+	sf::RectangleShape menuwindow, choicewindow[2];
+public:
+	escapemenu() {
+		menuflaga = 0;
+		choice = 1;
+		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
+		menuwindow.setSize(sf::Vector2f(400, 200));
+		menuwindow.setFillColor(sf::Color(30, 30, 30));
+		menuwindow.setPosition(400, 200);
+		menuwindow.setOutlineThickness(5);
+		menuwindow.setOutlineColor(sf::Color(140, 140, 140));
+		for (int i = 0; i < 3; i++) {
+			tekst[i].setFont(czcionka);
+			tekst[i].setFillColor(sf::Color::White);
+			tekst[i].setCharacterSize(40);
+		}
+		for (int i = 0; i < 2; i++) {
+			choicewindow[i].setFillColor(sf::Color(200, 200, 200));
+			choicewindow[i].setOutlineThickness(5);
+			choicewindow[i].setOutlineColor(sf::Color(140, 140, 140));
+			choicewindow[i].setSize(sf::Vector2f(90, 50));
+		}
+		choicewindow[0].setPosition(460, 320);
+		choicewindow[1].setPosition(635, 320);
+		tekst[0].setString("Do you want to exit?");
+		tekst[0].setPosition(450, 220);
+		tekst[1].setString("Yes");
+		tekst[1].setPosition(480, 320);
+		tekst[2].setString("No");
+		tekst[2].setPosition(660, 320);
+		tekst[2].setFillColor(sf::Color(80, 80, 80));
+	}
+	void setChoice(bool direction) {
+		if (direction == 1 && choice == 0) {
+			tekst[1].setFillColor(sf::Color::White);
+			choice = 1;
+			tekst[2].setFillColor(sf::Color(80, 80, 80));
+		}
+		if (direction == 0 && choice == 1) {
+			tekst[2].setFillColor(sf::Color::White);
+			choice = 0;
+			tekst[1].setFillColor(sf::Color(80, 80, 80));
+		}
+	}
+	bool getChoice() {
+		return choice;
+	}
+	bool getFlaga() {
+		return menuflaga;
+	}
+	void setFlaga(bool i) {
+		menuflaga = i;
+	}
+	void drawMenu(sf::RenderWindow& window) {
+		window.draw(menuwindow);
+		for (int i = 0; i < 2; i++) window.draw(choicewindow[i]);
+		for (int i = 0; i < 3; i++) window.draw(tekst[i]);
+		
 	}
 };
 
@@ -375,8 +463,8 @@ public:
 		this->number += 1;
 		if (number == lasernum) {
 			number = 0;
-			//add some reloading shit idk
 		}
+
 	}
 	void moveLaser() {
 		for (int i = 0; i < number; i++) {
@@ -579,8 +667,14 @@ public:
 class ammo {
 private:
 	sf::RectangleShape bullet[lasernum];
+	sf::Text tekst;
+	sf::Font czcionka;
 public:
 	ammo() {
+		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
+		tekst.setString("Reloading");
+		tekst.setPosition(10.f, 340.f);
+		tekst.setFillColor((sf::Color::White));
 		for (int i = 0; i < lasernum; i++) {
 			bullet[i].setFillColor(sf::Color::White);
 			bullet[i].setSize(sf::Vector2f(5, 30));
@@ -595,11 +689,16 @@ public:
 		bullet[7].setPosition(120, 345);
 		bullet[8].setPosition(135, 345);
 		bullet[9].setPosition(150, 345);
+		
 	}
 	void drawAmmo(sf::RenderWindow& window, int n) {
 		for (int i = 0; i < n; i++) {
 			window.draw(bullet[i]);
 		}
+		
+	}
+	void drawReload(sf::RenderWindow& window) {
+		window.draw(tekst);
 	}
 };
 
@@ -613,6 +712,8 @@ int main() {
 	ammo a1;
 	menu m1;
 	startmenu sm1;
+	helpmenu hm1;
+	escapemenu em1;
 	sf::RenderWindow window(sf::VideoMode(borderx, bordery), "~Asteroid Shooter~",sf::Style::Close);
 	sf::Event event;
 	sf::Cursor cursor;
@@ -624,8 +725,8 @@ int main() {
 			if (event.type == sf::Event::EventType::Closed)
 				window.close();
 		}
-		
-		if (sm1.getFlaga() == 0 && zegar.getElapsedTime().asMilliseconds() > 120.f) {
+		//startmenu
+		if (em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() == 0 && zegar.getElapsedTime().asMilliseconds() > 100.f) {
 			if (event.type == sf::Event::TextEntered)
 			{
 				char znak = static_cast<char>(event.text.unicode);
@@ -636,6 +737,7 @@ int main() {
 				}
 				else if (znak == 27) {
 					printf("chujesc");
+					em1.setFlaga(1);
 				}
 				else sm1.setChar(znak);
 			}
@@ -652,6 +754,7 @@ int main() {
 				if (event.key.code == sf::Keyboard::F1)
 				{
 					printf("chujf1");
+					hm1.setFlaga(1);
 				}
 			}
 
@@ -664,10 +767,27 @@ int main() {
 			sm1.drawStart(window);
 			window.display();
 		}
-
-
-		if (sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {
+		//game
+		else if (em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {
 			
+
+			if (event.type == sf::Event::TextEntered)
+			{
+				char znak = static_cast<char>(event.text.unicode);	
+				if (znak == 27) {
+					printf("chujesc");
+					em1.setFlaga(1);
+				}
+			}
+			if (event.type == sf::Event::KeyPressed)
+			{
+				if (event.key.code == sf::Keyboard::F1)
+				{
+					printf("chujf1");
+					hm1.setFlaga(1);
+				}
+			}
+
 			sf::Vector2f pos, vel;
 			sf::Vector2i mousepos;
 			p1.getPos(pos);
@@ -703,7 +823,7 @@ int main() {
 				p1.drawStatic();
 			}
 			if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-				if (zegarLaser.getElapsedTime().asMilliseconds() > 250.f) {
+				if (zegarLaser.getElapsedTime().asMilliseconds() > 500.f) {
 					l1.shootLaser(mousepos, pos);
 					zegarLaser.restart();
 				}
@@ -742,9 +862,57 @@ int main() {
 			r1.drawRocks(window);
 			m1.drawMenu(window);
 			h1.drawHeart(window);
-			a1.drawAmmo(window, lasernum - l1.getFired());
+			
+				
+			
 			window.display();
 		}
+		//escmenu
+		else if (em1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 100.f) {
+			zegar.restart();
+			if (event.type == sf::Event::TextEntered)
+			{
+				char znak = static_cast<char>(event.text.unicode);
+				if (znak == 13) {
+					if (em1.getChoice()) {
+						em1.setFlaga(0);
+					}
+					if (em1.getChoice() == 0) {
+						return 0;
+					}
+				}
+				
+			}
+			if (event.type == sf::Event::KeyPressed)
+			{
+				if (event.key.code == sf::Keyboard::Left)
+				{
+					em1.setChoice(0);
+				}
+				if (event.key.code == sf::Keyboard::Right)
+				{
+					em1.setChoice(1);
+				}
+			}
+			em1.drawMenu(window);
+			window.display();
+		}
+		//helpmenu
+		else if (hm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 100.f) {
+			zegar.restart();
+			if (event.type == sf::Event::KeyPressed)
+			{
+				if (event.key.code == sf::Keyboard::F1)
+				{
+					printf("chujf1");
+					hm1.setFlaga(0);
+				}
+			}
+			
+			hm1.drawMenu(window);
+			window.display();
+		}
+
 
 	}
 

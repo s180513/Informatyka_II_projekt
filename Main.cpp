@@ -28,6 +28,7 @@ private:
 	char name[20];
 	int num;
 	int diffpos;
+	std::string str;
 	sf::Font czcionka;
 	sf::Text tekst[6];
 	sf::RectangleShape menuwindow, diffwindow[3];
@@ -81,6 +82,9 @@ public:
 	bool getFlaga() {
 		return menuflaga;
 	}
+	void setFlaga(bool i) {
+		menuflaga = i;
+	}
 	int getDiffPos() {
 		return diffpos;
 	}
@@ -90,7 +94,7 @@ public:
 	void setChar(char znak) {
 		name[num] = znak;
 		if (num < 20) num++;
-		std::string str(name);
+		str = name;
 		tekst[2].setString(str);
 	}
 	void setDiff(bool direction) {
@@ -108,6 +112,9 @@ public:
 				tekst[diffpos].setFillColor(sf::Color(80, 80, 80));
 			}
 		}
+	}
+	std::string getName() {
+		return str;
 	}
 	void drawStart(sf::RenderWindow& window) {
 		window.draw(menuwindow);
@@ -223,6 +230,105 @@ public:
 	}
 };
 
+class gameover {
+private:
+	bool menuflaga;
+	bool choice;
+	sf::Font czcionka;
+	sf::Text tekst[10];
+	sf::RectangleShape menuwindow, choicewindow[2];
+public:
+	gameover() {
+		menuflaga = 0;
+		choice = 1;
+		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
+		menuwindow.setSize(sf::Vector2f(400, 450));
+		menuwindow.setFillColor(sf::Color(30, 30, 30));
+		menuwindow.setPosition(400, 100);
+		menuwindow.setOutlineThickness(5);
+		menuwindow.setOutlineColor(sf::Color(140, 140, 140));
+		for (int i = 0; i < 10; i++) {
+			tekst[i].setFont(czcionka);
+			tekst[i].setFillColor(sf::Color::White);
+			tekst[i].setCharacterSize(40);
+		}
+		for (int i = 0; i < 2; i++) {
+			choicewindow[i].setFillColor(sf::Color(200, 200, 200));
+			choicewindow[i].setOutlineThickness(5);
+			choicewindow[i].setOutlineColor(sf::Color(140, 140, 140));
+			choicewindow[i].setSize(sf::Vector2f(90, 50));
+		}
+		choicewindow[0].setPosition(460, 270);
+		choicewindow[1].setPosition(635, 270);
+		tekst[0].setString("Do you want to quit?");
+		tekst[0].setPosition(450, 180);
+		tekst[1].setString("Yes");
+		tekst[1].setPosition(480, 270);
+		tekst[2].setString("No");
+		tekst[2].setPosition(660, 270);
+		tekst[2].setFillColor(sf::Color(80, 80, 80));
+		tekst[3].setString("Name:");
+		tekst[3].setPosition(450, 360);
+		tekst[4].setString("---");
+		tekst[4].setPosition(550, 360);
+		tekst[5].setString("Score:");
+		tekst[5].setPosition(450, 420);
+		tekst[6].setString("---");
+		tekst[6].setPosition(560, 420);
+		tekst[7].setString("Difficulty:");
+		tekst[7].setPosition(450, 480);
+		tekst[8].setString("---");
+		tekst[8].setPosition(600, 480);
+		tekst[9].setCharacterSize(40);
+		tekst[9].setString("Game Over");
+		tekst[9].setPosition(500, 120);
+		tekst[9].setFillColor(sf::Color::Red);
+
+	}
+	void setChoice(bool direction) {
+		if (direction == 1 && choice == 0) {
+			tekst[1].setFillColor(sf::Color::White);
+			choice = 1;
+			tekst[2].setFillColor(sf::Color(80, 80, 80));
+		}
+		if (direction == 0 && choice == 1) {
+			tekst[2].setFillColor(sf::Color::White);
+			choice = 0;
+			tekst[1].setFillColor(sf::Color(80, 80, 80));
+		}
+	}
+	bool getChoice() {
+		return choice;
+	}
+	bool getFlaga() {
+		return menuflaga;
+	}
+	void setFlaga(bool i) {
+		menuflaga = i;
+	}
+	void setGameover(std::string str, int diff, int score) {
+		tekst[4].setString(str);
+		switch (diff) {
+		case 3:
+			tekst[8].setString("Easy");
+			break;
+		case 4:
+			tekst[8].setString("Normal");
+			break;
+		case 5:
+			tekst[8].setString("Hard");
+			break;
+		}
+		tekst[6].setString(std::to_string(score));
+	}
+	void drawMenu(sf::RenderWindow& window) {
+		window.draw(menuwindow);
+		for (int i = 0; i < 2; i++) window.draw(choicewindow[i]);
+		for (int i = 0; i < 10; i++) window.draw(tekst[i]);
+
+	}
+};
+
 class menu {
 private:
 	int points;
@@ -273,6 +379,9 @@ public:
 			tekst[1].setString("Hard");
 			break;
 		}
+	}
+	int getPoints() {
+		return points;
 	}
 	void addPoints() {
 		points += 100;
@@ -510,11 +619,14 @@ public:
 		Heart[1].setPosition(80.f, 240.f);
 		Heart[2].setPosition(140.f, 240.f);
 	}
-	void addHeart() {
-		if (stan < 3) stan += 1;
+	void resetHeart() {
+		stan = heartnum;
 	}
 	void subHeart() {
 		if (stan > 0) stan -= 1;
+	}
+	int getStan() {
+		return stan;
 	}
 	void drawHeart(sf::RenderWindow& window) {
 		for (int i = 0; i < stan; i++) {
@@ -714,6 +826,7 @@ int main() {
 	startmenu sm1;
 	helpmenu hm1;
 	escapemenu em1;
+	gameover go1;
 	sf::RenderWindow window(sf::VideoMode(borderx, bordery), "~Asteroid Shooter~",sf::Style::Close);
 	sf::Event event;
 	sf::Cursor cursor;
@@ -768,7 +881,7 @@ int main() {
 			window.display();
 		}
 		//game
-		else if (em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {
+		else if (go1.getFlaga() == 0 && em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {
 			
 
 			if (event.type == sf::Event::TextEntered)
@@ -848,7 +961,10 @@ int main() {
 				}
 			}
 
-
+			if (h1.getStan() == 0) {
+				go1.setFlaga(1);
+				go1.setGameover(sm1.getName(), sm1.getDiffPos(), m1.getPoints());
+			}
 
 			//printf("x = %f, y = %f\n", pos.x, pos.y);
 			//printf("dx = %f, dy = %f\n", vel.x, vel.y);
@@ -912,7 +1028,38 @@ int main() {
 			hm1.drawMenu(window);
 			window.display();
 		}
+		//gameover
+		else if (go1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 100.f) {
+		zegar.restart();
+		if (event.type == sf::Event::TextEntered)
+		{
+			char znak = static_cast<char>(event.text.unicode);
+			if (znak == 13) {
+				if (go1.getChoice()) {
+					go1.setFlaga(0);
+					sm1.setFlaga(0);
+					h1.resetHeart();
+				}
+				if (go1.getChoice() == 0) {
+					return 0;
+				}
+			}
 
+		}
+		if (event.type == sf::Event::KeyPressed)
+		{
+			if (event.key.code == sf::Keyboard::Left)
+			{
+				go1.setChoice(0);
+			}
+			if (event.key.code == sf::Keyboard::Right)
+			{
+				go1.setChoice(1);
+			}
+		}
+		go1.drawMenu(window);
+		window.display();
+		}
 
 	}
 

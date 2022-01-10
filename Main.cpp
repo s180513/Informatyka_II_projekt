@@ -4,6 +4,8 @@
 #include <random>
 #include <math.h>
 #include <string>
+#include <vector>]
+#include <fstream>
 
 #define PI 3.14159265
 #define velocity 15
@@ -16,28 +18,26 @@
 #define heartnum 3
 
 struct player {
-	char name[20];
+	std::string name;
 	int difficulty;
 	int points;
-	int lives;
 };
 
 class startmenu {
 private:
 	bool menuflaga;
-	char name[20];
 	int num;
 	int diffpos;
 	std::string str;
 	sf::Font czcionka;
 	sf::Text tekst[6];
 	sf::RectangleShape menuwindow, diffwindow[3];
+	std::vector<char> nazwa;
 public:
 	startmenu() {
 		menuflaga = 0;
 		num = 0;
 		diffpos = 4;
-		for (int i = 0; i < 20; i++) name[i] = 32;
 		menuwindow.setSize(sf::Vector2f(600, 400));
 		menuwindow.setFillColor(sf::Color(80, 80, 80));
 		menuwindow.setPosition(300, 100);
@@ -92,10 +92,25 @@ public:
 		menuflaga++;
 	}
 	void setChar(char znak) {
-		name[num] = znak;
-		if (num < 20) num++;
+		nazwa.push_back(znak);
+		std::string name(nazwa.begin(), nazwa.end());
+		tekst[2].setString(name);
+		for (auto& i : nazwa) {
+			std::cout << i;
+		}
+		std::cout << "\n";
 		str = name;
-		tekst[2].setString(str);
+	}
+	void deleteChar() {
+		nazwa.pop_back();
+		std::string name(nazwa.begin(), nazwa.end());
+		tekst[2].setString("                                 ");
+		tekst[2].setString(name);
+		for (auto& i : nazwa) {
+			std::cout << i;
+		}
+		std::cout << "\n";
+		str = name;
 	}
 	void setDiff(bool direction) {
 		if (direction) {
@@ -334,7 +349,7 @@ private:
 	int points;
 	int difficulty;
 	sf::Font czcionka;
-	sf::Text tekst[8];
+	sf::Text tekst[10];
 	sf::RectangleShape sidebar;
 public:
 	menu() {
@@ -344,9 +359,12 @@ public:
 		sidebar.setSize(sf::Vector2f(200,600));
 		sidebar.setFillColor(sf::Color(30, 30, 30));
 		sidebar.setPosition(0, 0);
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 10; i++) {
 			tekst[i].setFont(czcionka);
 			tekst[i].setFillColor(sf::Color::White);
+		}
+		for (int i = 8; i < 10; i++) {
+			tekst[i].setCharacterSize(20);
 		}
 		tekst[0].setString("Difficulty:");
 		tekst[0].setPosition(10.f, 10.f);
@@ -358,14 +376,16 @@ public:
 		tekst[3].setPosition(10.f, 140.f);
 		tekst[4].setString("Lives:");
 		tekst[4].setPosition(10.f, 190.f);
-		tekst[5].setString("Ammunition:");
+		tekst[5].setString("Highscore:");
 		tekst[5].setPosition(10.f, 300.f);
-		tekst[6].setString("F1 - Help");
-		tekst[6].setPosition(10.f, bordery-80);
-		tekst[6].setCharacterSize(20);
-		tekst[7].setString("Esc - Exit");
-		tekst[7].setPosition(10.f, bordery-40);
-		tekst[7].setCharacterSize(20);
+		tekst[6].setString("---");
+		tekst[6].setPosition(10.f, 340.f);
+		tekst[7].setString("---");
+		tekst[7].setPosition(10.f, 380.f);
+		tekst[8].setString("F1 - Help");
+		tekst[8].setPosition(10.f, bordery-80);
+		tekst[9].setString("Esc - Exit");
+		tekst[9].setPosition(10.f, bordery-40);
 	}
 	void setDifficulty(int i) {
 		switch (i) {
@@ -380,8 +400,51 @@ public:
 			break;
 		}
 	}
+	void setHigh(int i) {
+
+		std::fstream log("Log.txt");
+		if (log.is_open())
+		{
+			int licznik = 0;
+			int beg = 0;
+			int end = 1;
+			bool flaga = 1;
+			std::string line, name, points;
+			switch (i) {
+			case 3:
+				beg = 0;
+				end = 1;
+				break;
+			case 4:
+				beg = 2;
+				end = 3;
+				break;
+			case 5:
+				beg = 4;
+				end = 5;
+				break;
+			}
+			
+			while (std::getline(log, line)) {
+				std::cout << line << '\n';
+				if (licznik == beg) name = line;
+				if (licznik == end) points = line;
+				licznik++;
+			}
+			tekst[6].setString(name);
+			tekst[7].setString(points);
+			log.close();
+		}
+		else std::cout << "Unable to open file";
+
+	}
 	int getPoints() {
 		return points;
+	}
+	void resetPoints() {
+		points = 0;
+		tekst[3].setString(std::to_string(points));
+		tekst[1].setString("---");
 	}
 	void addPoints() {
 		points += 100;
@@ -389,7 +452,7 @@ public:
 	}
 	void drawMenu(sf::RenderWindow& window) {
 		window.draw(sidebar);
-		for (int i = 0; i < 8; i++) window.draw(tekst[i]);
+		for (int i = 0; i < 10; i++) window.draw(tekst[i]);
 	}
 };
 
@@ -506,6 +569,12 @@ public:
 	}
 	void drawMoving() {
 		tekstura.loadFromFile("Shipmove.png");
+	}
+	void resetPosition() {
+		x = 600;
+		y = 400;
+		dx = 0;
+		dy = 0;
 	}
 	void drawShip(sf::RenderWindow& window) {
 		if (id) {
@@ -640,7 +709,7 @@ private:
 	bool id[asteroidnum];
 	bool expid[asteroidnum];
 	int counter[asteroidnum];
-	int difficulty;
+	float difficulty;
 	sf::Sprite rock[asteroidnum];
 	sf::Texture tekstura1, tekstura2, tekstura3, tekstura4;
 	sf::Vector2f posa[asteroidnum];
@@ -750,14 +819,21 @@ public:
 	void setDifficulty(int i) {
 		switch (i) {
 		case 3:
-			this->difficulty = 0.5;
+			this->difficulty = 0.7;
 			break;
 		case 4:
 			this->difficulty = 1;
 			break;
 		case 5:
-			this->difficulty = 2;
+			this->difficulty = 1.5;
 			break;
+		}
+	}
+	void resetRocks() {
+		for (int i = 0; i < asteroidnum; i++) {
+			newPositionRock(i);
+			counter[i] = 0;
+			expid[i] = 0;
 		}
 	}
 	void drawRocks(sf::RenderWindow& window) {
@@ -776,44 +852,6 @@ public:
 	}
 };
 
-class ammo {
-private:
-	sf::RectangleShape bullet[lasernum];
-	sf::Text tekst;
-	sf::Font czcionka;
-public:
-	ammo() {
-		if (!czcionka.loadFromFile("AGENCYB.ttf")) return;
-		tekst.setString("Reloading");
-		tekst.setPosition(10.f, 340.f);
-		tekst.setFillColor((sf::Color::White));
-		for (int i = 0; i < lasernum; i++) {
-			bullet[i].setFillColor(sf::Color::White);
-			bullet[i].setSize(sf::Vector2f(5, 30));
-		}
-		bullet[0].setPosition(15, 345);
-		bullet[1].setPosition(30, 345);
-		bullet[2].setPosition(45, 345);
-		bullet[3].setPosition(60, 345);
-		bullet[4].setPosition(75, 345);
-		bullet[5].setPosition(90, 345);
-		bullet[6].setPosition(105, 345);
-		bullet[7].setPosition(120, 345);
-		bullet[8].setPosition(135, 345);
-		bullet[9].setPosition(150, 345);
-		
-	}
-	void drawAmmo(sf::RenderWindow& window, int n) {
-		for (int i = 0; i < n; i++) {
-			window.draw(bullet[i]);
-		}
-		
-	}
-	void drawReload(sf::RenderWindow& window) {
-		window.draw(tekst);
-	}
-};
-
 int main() {
 
 	sf::Clock zegar, zegarLaser;
@@ -821,7 +859,6 @@ int main() {
 	lasers l1;
 	rocks r1;
 	hearts h1;
-	ammo a1;
 	menu m1;
 	startmenu sm1;
 	helpmenu hm1;
@@ -842,15 +879,19 @@ int main() {
 		if (em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() == 0 && zegar.getElapsedTime().asMilliseconds() > 100.f) {
 			if (event.type == sf::Event::TextEntered)
 			{
-				char znak = static_cast<char>(event.text.unicode);
+				char znak = (event.text.unicode);
 				if (znak == 13) {
 					m1.setDifficulty(sm1.getDiffPos());
+					m1.setHigh(sm1.getDiffPos());
 					r1.setDifficulty(sm1.getDiffPos());
 					sm1.closeStart();
 				}
 				else if (znak == 27) {
 					printf("chujesc");
 					em1.setFlaga(1);
+				}
+				else if (znak == 8) {
+					sm1.deleteChar();
 				}
 				else sm1.setChar(znak);
 			}
@@ -876,7 +917,6 @@ int main() {
 			zegar.restart();
 			m1.drawMenu(window);
 			h1.drawHeart(window);
-			a1.drawAmmo(window, lasernum);
 			sm1.drawStart(window);
 			window.display();
 		}
@@ -886,7 +926,7 @@ int main() {
 
 			if (event.type == sf::Event::TextEntered)
 			{
-				char znak = static_cast<char>(event.text.unicode);	
+				char znak = (event.text.unicode);	
 				if (znak == 27) {
 					printf("chujesc");
 					em1.setFlaga(1);
@@ -1039,6 +1079,9 @@ int main() {
 					go1.setFlaga(0);
 					sm1.setFlaga(0);
 					h1.resetHeart();
+					m1.resetPoints();
+					r1.resetRocks();
+					p1.resetPosition();
 				}
 				if (go1.getChoice() == 0) {
 					return 0;

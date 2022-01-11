@@ -19,8 +19,8 @@
 
 struct player {
 	std::string name;
-	int difficulty;
-	int points;
+	int difficulty = 4;
+	int points = 0;
 };
 
 class startmenu {
@@ -77,7 +77,6 @@ public:
 		tekst[5].setString("Hard");
 		tekst[5].setPosition(750, 375);
 		tekst[5].setCharacterSize(50);
-
 	}
 	bool getFlaga() {
 		return menuflaga;
@@ -95,9 +94,7 @@ public:
 		nazwa.push_back(znak);
 		std::string name(nazwa.begin(), nazwa.end());
 		tekst[2].setString(name);
-		for (auto& i : nazwa) {
-			std::cout << i;
-		}
+		for (auto& i : nazwa) std::cout << i;
 		std::cout << "\n";
 		str = name;
 	}
@@ -106,9 +103,7 @@ public:
 		std::string name(nazwa.begin(), nazwa.end());
 		tekst[2].setString("                                 ");
 		tekst[2].setString(name);
-		for (auto& i : nazwa) {
-			std::cout << i;
-		}
+		for (auto& i : nazwa) std::cout << i;
 		std::cout << "\n";
 		str = name;
 	}
@@ -298,7 +293,6 @@ public:
 		tekst[9].setString("Game Over");
 		tekst[9].setPosition(500, 120);
 		tekst[9].setFillColor(sf::Color::Red);
-
 	}
 	void setChoice(bool direction) {
 		if (direction == 1 && choice == 0) {
@@ -340,7 +334,6 @@ public:
 		window.draw(menuwindow);
 		for (int i = 0; i < 2; i++) window.draw(choicewindow[i]);
 		for (int i = 0; i < 10; i++) window.draw(tekst[i]);
-
 	}
 };
 
@@ -351,6 +344,7 @@ private:
 	sf::Font czcionka;
 	sf::Text tekst[10];
 	sf::RectangleShape sidebar;
+	std::string highname, highpoints;
 public:
 	menu() {
 		points = 0;
@@ -400,8 +394,10 @@ public:
 			break;
 		}
 	}
+	std::string getHighpoints() {
+		return highpoints;
+	}
 	void setHigh(int i) {
-
 		std::fstream log("Log.txt");
 		if (log.is_open())
 		{
@@ -409,7 +405,7 @@ public:
 			int beg = 0;
 			int end = 1;
 			bool flaga = 1;
-			std::string line, name, points;
+			std::string line;
 			switch (i) {
 			case 3:
 				beg = 0;
@@ -423,20 +419,22 @@ public:
 				beg = 4;
 				end = 5;
 				break;
-			}
-			
+			}		
 			while (std::getline(log, line)) {
 				std::cout << line << '\n';
-				if (licznik == beg) name = line;
-				if (licznik == end) points = line;
+				if (licznik == beg) {
+					tekst[6].setString(line);
+					highname = line;
+				}
+				if (licznik == end) {
+					tekst[7].setString(line);
+					highpoints = line;
+				}
 				licznik++;
 			}
-			tekst[6].setString(name);
-			tekst[7].setString(points);
 			log.close();
 		}
 		else std::cout << "Unable to open file";
-
 	}
 	int getPoints() {
 		return points;
@@ -445,6 +443,10 @@ public:
 		points = 0;
 		tekst[3].setString(std::to_string(points));
 		tekst[1].setString("---");
+	}
+	void resetHigh() {
+		tekst[6].setString("---");
+		tekst[7].setString("---");
 	}
 	void addPoints() {
 		points += 100;
@@ -486,27 +488,27 @@ public:
 		return statek;
 	}
 	void getPos(sf::Vector2f& pos) {
-		pos.x = this->x;
-		pos.y = this->y;
+		pos.x = x;
+		pos.y = y;
 	}
 	void setPos(float X, float Y) {
-		this->x = X;
-		this->y = Y;
+		x = X;
+		y = Y;
 	}
 	void getVel(sf::Vector2f& vel) {
-		vel.x = this->dx;
-		vel.y = this->dy;
+		vel.x = dx;
+		vel.y = dy;
 	}
 	void rotateShip(sf::Vector2i mousepos) {
-		this->angle = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
-		statek.setRotation(this->angle);
+		angle = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
+		statek.setRotation(angle);
 	}
 	void newPos(float Dx, float Dy) {
 		if (Dx != 0) {
-			if (this->dx < maxvelocity && this->dx > -maxvelocity) {
-				this->dx += Dx;
+			if (dx < maxvelocity && dx > -maxvelocity) {
+				dx += Dx;
 			}
-			this->x += (dx * 0.03);
+			x += (dx * 0.03);
 			if (x > borderx - 10) {
 				dx = 0;
 				x = borderx - 10;
@@ -517,10 +519,10 @@ public:
 			}
 		}
 		if (Dy != 0) {
-			if (this->dy < maxvelocity && this->dy > -maxvelocity) {
-				this->dy += Dy;
+			if (dy < maxvelocity && dy > -maxvelocity) {
+				dy += Dy;
 			}
-			this->y += (dy * 0.03);
+			y += (dy * 0.03);
 			if (y > bordery - 10) {
 				dy = 0;
 				y = bordery - 10;
@@ -531,9 +533,9 @@ public:
 			}
 		}
 		if (Dx == 0) {
-			if (this->dx > 0)this->dx -= velocity;
-			if (this->dx < 0)this->dx += velocity;
-			this->x += (dx * 0.03);
+			if (dx > 0)dx -= velocity;
+			if (dx < 0)dx += velocity;
+			x += (dx * 0.03);
 			if (x > borderx - 10) {
 				dx = 0;
 				x = borderx - 10;
@@ -543,11 +545,10 @@ public:
 				x = 200;
 			}
 		}
-
 		if (Dy == 0) {
-			if (this->dy > 0)this->dy -= velocity;
-			if (this->dy < 0)this->dy += velocity;
-			this->y += (dy * 0.03);
+			if (dy > 0)dy -= velocity;
+			if (dy < 0)dy += velocity;
+			y += (dy * 0.03);
 			if (y > bordery - 10) {
 				dy = 0;
 				y = bordery - 10;
@@ -624,31 +625,30 @@ public:
 		return id[i];
 	}
 	void deleteLaser(int i) {
-		this->id[i] = 0;
+		id[i] = 0;
 	}
 	int getFired() {
-		return this->number;
+		return number;
 	}
 	void shootLaser(sf::Vector2i mousepos, sf::Vector2f pos) {
-		this->ang[number] = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
-		this->posl[number] = pos;
+		ang[number] = (atan2(mousepos.y, mousepos.x) * 180 / PI) + 90;
+		posl[number] = pos;
 		laser[number].setPosition(pos.x, pos.y);
 		laser[number].setRotation(ang[number]);
-		this->vell[number].x = laservelocity * cos((ang[number] + 90) * PI / 180);
-		this->vell[number].y = laservelocity * sin((ang[number] + 90) * PI / 180);
-		this->vellconst[number] = vell[number];
+		vell[number].x = laservelocity * cos((ang[number] + 90) * PI / 180);
+		vell[number].y = laservelocity * sin((ang[number] + 90) * PI / 180);
+		vellconst[number] = vell[number];
 		id[number] = 1;
-		this->number += 1;
+		number += 1;
 		if (number == lasernum) {
 			number = 0;
 		}
-
 	}
 	void moveLaser() {
 		for (int i = 0; i < number; i++) {
 			sf::Vector2f newposl = posl[i] - vell[i];
 			laser[i].setPosition(newposl);
-			this->vell[i] += vellconst[i];
+			vell[i] += vellconst[i];
 			if ((newposl.x > borderx + 30) || (newposl.x < 170) || (newposl.y > bordery + 30) || (newposl.y < -30)) {
 				id[i] = 0;
 			}
@@ -732,11 +732,12 @@ public:
 	sf::Sprite getRock(int i) {
 		return rock[i];
 	}
-	bool getId(int i) {
-		return id[i];
-	}
 	bool getExpId(int i) {
 		return expid[i];
+	}
+	void getExpId_and_Id(bool *expid_in, bool *id_in, int i) {
+		*expid_in = this->expid[i];
+		*id_in = this->id[i];
 	}
 	void makeExplode(int i) {
 		rock[i].setTexture(tekstura4);
@@ -763,14 +764,14 @@ public:
 		while (flagax == 0) {
 			x = distx(gen);
 			if (x < 150 || x > borderx+50) {
-				this->posa[i].x = x;
+				posa[i].x = x;
 				flagax = 1;
 			}
 		}
 		while (flagay == 0) {
 			y = disty(gen);
 			if (y < -50 || y > bordery+50) {
-				this->posa[i].y = y;
+				posa[i].y = y;
 				flagay = 1;
 			}
 		}
@@ -794,18 +795,18 @@ public:
 		scale = dists(gen);
 		rock[i].setScale(scale, scale);
 		rock[i].setRotation(distr(gen));
-		this->vela[i].x = distvx(gen);
-		this->vela[i].y = distvy(gen);
-		this->vela[i].x *= difficulty;
-		this->vela[i].y *= difficulty;
-		this->velaconst[i] = vela[i];
+		vela[i].x = distvx(gen);
+		vela[i].y = distvy(gen);
+		vela[i].x *= difficulty;
+		vela[i].y *= difficulty;
+		velaconst[i] = vela[i];
 		id[i] = 1;
 	}
 	void moveRocks() {
 		for (int i = 0; i < asteroidnum; i++) {
 			sf::Vector2f newposa = posa[i] - vela[i];
 			rock[i].setPosition(newposa);
-			this->vela[i] += velaconst[i];
+			vela[i] += velaconst[i];
 			if ((newposa.x > borderx + 200) || (newposa.x < 0) || (newposa.y > bordery + 200) || (newposa.y < - 200)) {
 				id[i] = 0;
 			}
@@ -819,13 +820,13 @@ public:
 	void setDifficulty(int i) {
 		switch (i) {
 		case 3:
-			this->difficulty = 0.7;
+			difficulty = 0.7;
 			break;
 		case 4:
-			this->difficulty = 1;
+			difficulty = 1;
 			break;
 		case 5:
-			this->difficulty = 1.5;
+			difficulty = 1.5;
 			break;
 		}
 	}
@@ -852,10 +853,56 @@ public:
 	}
 };
 
+void savePlayer(player *p) {
+	std::fstream log1("Log.txt");
+	std::string line;
+	std::string file[6];
+	if (log1.is_open())
+	{
+		int licznik = 0;
+		while (getline(log1, line))
+		{
+			file[licznik] = line;
+			licznik++;
+		}
+		log1.close();
+	}
+	else std::cout << "Unable to open file";
+	std::ofstream log2("Log.txt");
+	if (log2.is_open())
+	{
+		int beg = 0;
+		int end = 1;
+		switch (p[0].difficulty) {
+		case 3:
+			beg = 0;
+			end = 1;
+			break;
+		case 4:
+			beg = 2;
+			end = 3;
+			break;
+		case 5:
+			beg = 4;
+			end = 5;
+			break;
+		}
+		for (int i = 0; i < 6; i++) {
+
+			if (i == beg) log2 << p[0].name << '\n';
+			else if (i == end) log2 << p[0].points << '\n';
+			else log2 << file[i] << '\n';
+		}
+		log2.close();
+	}
+	else std::cout << "Unable to open file";
+}
+
 int main() {
 
 	sf::Clock zegar, zegarLaser;
-	ship p1;
+	player p[1];
+	ship s1;
 	lasers l1;
 	rocks r1;
 	hearts h1;
@@ -884,6 +931,8 @@ int main() {
 					m1.setDifficulty(sm1.getDiffPos());
 					m1.setHigh(sm1.getDiffPos());
 					r1.setDifficulty(sm1.getDiffPos());
+					p[0].difficulty = sm1.getDiffPos();
+					p[0].name = sm1.getName();
 					sm1.closeStart();
 				}
 				else if (znak == 27) {
@@ -921,9 +970,7 @@ int main() {
 			window.display();
 		}
 		//game
-		else if (go1.getFlaga() == 0 && em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {
-			
-
+		else if (go1.getFlaga() == 0 && em1.getFlaga() == 0 && hm1.getFlaga() == 0 && sm1.getFlaga() && zegar.getElapsedTime().asMilliseconds() > 30.f) {			
 			if (event.type == sf::Event::TextEntered)
 			{
 				char znak = (event.text.unicode);	
@@ -943,37 +990,38 @@ int main() {
 
 			sf::Vector2f pos, vel;
 			sf::Vector2i mousepos;
-			p1.getPos(pos);
-			p1.getVel(vel);
+			s1.getPos(pos);
+			s1.getVel(vel);
 
-			mousepos = p1.getPosition(window);
+			mousepos = s1.getPosition(window);
 			mousepos.x -= (pos.x);
 			mousepos.y -= (pos.y);
 
-			p1.rotateShip(mousepos);
+			s1.rotateShip(mousepos);
 			r1.checkId();
 
+			//sterowanie i strzelanie
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-					p1.newPos(0, -velocity);
-					p1.drawMoving();
+					s1.newPos(0, -velocity);
+					s1.drawMoving();
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-					p1.newPos(0, velocity);
-					p1.drawMoving();
+					s1.newPos(0, velocity);
+					s1.drawMoving();
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-					p1.newPos(-velocity, 0);
-					p1.drawMoving();
+					s1.newPos(-velocity, 0);
+					s1.drawMoving();
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-					p1.newPos(velocity, 0);
-					p1.drawMoving();
+					s1.newPos(velocity, 0);
+					s1.drawMoving();
 				}
 			}
 			else {
-				p1.newPos(0, 0);
-				p1.drawStatic();
+				s1.newPos(0, 0);
+				s1.drawStatic();
 			}
 			if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 				if (zegarLaser.getElapsedTime().asMilliseconds() > 500.f) {
@@ -984,42 +1032,44 @@ int main() {
 			l1.moveLaser();
 			r1.moveRocks();
 
-
+			//kolizja laser/asteroida
 			for (int i = 0; i < lasernum; i++) {
 				for (int j = 0; j < asteroidnum; j++) {
-					if (r1.getExpId(j) == 0 && r1.getId(j) && l1.getId(i) && (l1.getLaser(i).getGlobalBounds().intersects(r1.getRock(j).getGlobalBounds()))) {
+					bool expid, id;
+					r1.getExpId_and_Id(&expid, &id, j);
+					if (expid == 0 && id && l1.getId(i) && (l1.getLaser(i).getGlobalBounds().intersects(r1.getRock(j).getGlobalBounds()))) {
 						r1.makeExplode(j);
 						l1.deleteLaser(i);
 						m1.addPoints();
+						p[0].points += 100;
 					}
 				}
 			}
+			//kolizja asteroida/statek
 			for (int i = 0; i < asteroidnum; i++) {
-				if (p1.getId() == 0 && r1.getExpId(i) == 0 && p1.getStatek().getGlobalBounds().intersects(r1.getRock(i).getGlobalBounds())) {
+				if (s1.getId() == 0 && r1.getExpId(i) == 0 && s1.getStatek().getGlobalBounds().intersects(r1.getRock(i).getGlobalBounds())) {
 					h1.subHeart();
-					p1.statekImmune();
+					s1.statekImmune();
 				}
 			}
-
+			
+			//gameover preperation
 			if (h1.getStan() == 0) {
+				std::string highpoints = m1.getHighpoints();
+				std::string points = std::to_string(p[0].points);
+				if (points.compare(highpoints)) savePlayer(&p[0]);
 				go1.setFlaga(1);
 				go1.setGameover(sm1.getName(), sm1.getDiffPos(), m1.getPoints());
 			}
 
-			//printf("x = %f, y = %f\n", pos.x, pos.y);
-			//printf("dx = %f, dy = %f\n", vel.x, vel.y);
-			//printf("mouse.x = %d, mouse.y = %d\n", mousepos.x, mousepos.y);
 			zegar.restart();
 			window.clear();
 
-
 			l1.drawLaser(window);
-			p1.drawShip(window);
+			s1.drawShip(window);
 			r1.drawRocks(window);
 			m1.drawMenu(window);
 			h1.drawHeart(window);
-			
-				
 			
 			window.display();
 		}
@@ -1028,16 +1078,14 @@ int main() {
 			zegar.restart();
 			if (event.type == sf::Event::TextEntered)
 			{
-				char znak = static_cast<char>(event.text.unicode);
+				char znak = (event.text.unicode);
 				if (znak == 13) {
-					if (em1.getChoice()) {
-						em1.setFlaga(0);
-					}
+					if (em1.getChoice()) em1.setFlaga(0);
 					if (em1.getChoice() == 0) {
+						savePlayer(&p[0]);
 						return 0;
 					}
 				}
-				
 			}
 			if (event.type == sf::Event::KeyPressed)
 			{
@@ -1064,7 +1112,6 @@ int main() {
 					hm1.setFlaga(0);
 				}
 			}
-			
 			hm1.drawMenu(window);
 			window.display();
 		}
@@ -1073,39 +1120,28 @@ int main() {
 		zegar.restart();
 		if (event.type == sf::Event::TextEntered)
 		{
-			char znak = static_cast<char>(event.text.unicode);
+			char znak = (event.text.unicode);
 			if (znak == 13) {
 				if (go1.getChoice()) {
 					go1.setFlaga(0);
 					sm1.setFlaga(0);
 					h1.resetHeart();
 					m1.resetPoints();
+					m1.resetHigh();
 					r1.resetRocks();
-					p1.resetPosition();
+					s1.resetPosition();
 				}
-				if (go1.getChoice() == 0) {
-					return 0;
-				}
+				if (go1.getChoice() == 0) return 0;
 			}
-
 		}
 		if (event.type == sf::Event::KeyPressed)
 		{
-			if (event.key.code == sf::Keyboard::Left)
-			{
-				go1.setChoice(0);
-			}
-			if (event.key.code == sf::Keyboard::Right)
-			{
-				go1.setChoice(1);
-			}
+			if (event.key.code == sf::Keyboard::Left) go1.setChoice(0);
+			if (event.key.code == sf::Keyboard::Right) go1.setChoice(1);
 		}
 		go1.drawMenu(window);
 		window.display();
 		}
-
 	}
-
 	return  0;
-
 }

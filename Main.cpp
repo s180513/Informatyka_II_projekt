@@ -4,7 +4,7 @@
 #include <random>
 #include <math.h>
 #include <string>
-#include <vector>]
+#include <vector>
 #include <fstream>
 
 #define PI 3.14159265
@@ -94,8 +94,6 @@ public:
 		nazwa.push_back(znak);
 		std::string name(nazwa.begin(), nazwa.end());
 		tekst[2].setString(name);
-		for (auto& i : nazwa) std::cout << i;
-		std::cout << "\n";
 		str = name;
 	}
 	void deleteChar() {
@@ -103,8 +101,6 @@ public:
 		std::string name(nazwa.begin(), nazwa.end());
 		tekst[2].setString("                                 ");
 		tekst[2].setString(name);
-		for (auto& i : nazwa) std::cout << i;
-		std::cout << "\n";
 		str = name;
 	}
 	void setDiff(bool direction) {
@@ -421,7 +417,6 @@ public:
 				break;
 			}		
 			while (std::getline(log, line)) {
-				std::cout << line << '\n';
 				if (licznik == beg) {
 					tekst[6].setString(line);
 					highname = line;
@@ -853,49 +848,52 @@ public:
 	}
 };
 
-void savePlayer(player *p) {
-	std::fstream log1("Log.txt");
-	std::string line;
-	std::string file[6];
-	if (log1.is_open())
-	{
-		int licznik = 0;
-		while (getline(log1, line))
+void savePlayer(player *p, std::string highpoints) {
+	int intHighpoints = std::stoi(highpoints);
+	if (p[0].points > intHighpoints) {
+		std::fstream log1("Log.txt");
+		std::string line;
+		std::string file[6];
+		if (log1.is_open())
 		{
-			file[licznik] = line;
-			licznik++;
+			int licznik = 0;
+			while (getline(log1, line))
+			{
+				file[licznik] = line;
+				licznik++;
+			}
+			log1.close();
 		}
-		log1.close();
-	}
-	else std::cout << "Unable to open file";
-	std::ofstream log2("Log.txt");
-	if (log2.is_open())
-	{
-		int beg = 0;
-		int end = 1;
-		switch (p[0].difficulty) {
-		case 3:
-			beg = 0;
-			end = 1;
-			break;
-		case 4:
-			beg = 2;
-			end = 3;
-			break;
-		case 5:
-			beg = 4;
-			end = 5;
-			break;
-		}
-		for (int i = 0; i < 6; i++) {
+		else std::cout << "Unable to open file";
+		std::ofstream log2("Log.txt");
+		if (log2.is_open())
+		{
+			int beg = 0;
+			int end = 1;
+			switch (p[0].difficulty) {
+			case 3:
+				beg = 0;
+				end = 1;
+				break;
+			case 4:
+				beg = 2;
+				end = 3;
+				break;
+			case 5:
+				beg = 4;
+				end = 5;
+				break;
+			}
+			for (int i = 0; i < 6; i++) {
 
-			if (i == beg) log2 << p[0].name << '\n';
-			else if (i == end) log2 << p[0].points << '\n';
-			else log2 << file[i] << '\n';
+				if (i == beg) log2 << p[0].name << '\n';
+				else if (i == end) log2 << p[0].points << '\n';
+				else log2 << file[i] << '\n';
+			}
+			log2.close();
 		}
-		log2.close();
-	}
-	else std::cout << "Unable to open file";
+		else std::cout << "Unable to open file";
+	}	
 }
 
 int main() {
@@ -936,7 +934,6 @@ int main() {
 					sm1.closeStart();
 				}
 				else if (znak == 27) {
-					printf("chujesc");
 					em1.setFlaga(1);
 				}
 				else if (znak == 8) {
@@ -956,7 +953,6 @@ int main() {
 				}
 				if (event.key.code == sf::Keyboard::F1)
 				{
-					printf("chujf1");
 					hm1.setFlaga(1);
 				}
 			}
@@ -975,7 +971,6 @@ int main() {
 			{
 				char znak = (event.text.unicode);	
 				if (znak == 27) {
-					printf("chujesc");
 					em1.setFlaga(1);
 				}
 			}
@@ -983,7 +978,6 @@ int main() {
 			{
 				if (event.key.code == sf::Keyboard::F1)
 				{
-					printf("chujf1");
 					hm1.setFlaga(1);
 				}
 			}
@@ -1055,9 +1049,7 @@ int main() {
 			
 			//gameover preperation
 			if (h1.getStan() == 0) {
-				std::string highpoints = m1.getHighpoints();
-				std::string points = std::to_string(p[0].points);
-				if (points.compare(highpoints)) savePlayer(&p[0]);
+				savePlayer(&p[0], m1.getHighpoints());
 				go1.setFlaga(1);
 				go1.setGameover(sm1.getName(), sm1.getDiffPos(), m1.getPoints());
 			}
@@ -1082,7 +1074,7 @@ int main() {
 				if (znak == 13) {
 					if (em1.getChoice()) em1.setFlaga(0);
 					if (em1.getChoice() == 0) {
-						savePlayer(&p[0]);
+						savePlayer(&p[0], m1.getHighpoints());
 						return 0;
 					}
 				}
@@ -1108,7 +1100,6 @@ int main() {
 			{
 				if (event.key.code == sf::Keyboard::F1)
 				{
-					printf("chujf1");
 					hm1.setFlaga(0);
 				}
 			}
@@ -1126,12 +1117,16 @@ int main() {
 					go1.setFlaga(0);
 					sm1.setFlaga(0);
 					h1.resetHeart();
+					p[0].points = 0;
 					m1.resetPoints();
 					m1.resetHigh();
 					r1.resetRocks();
 					s1.resetPosition();
 				}
-				if (go1.getChoice() == 0) return 0;
+				if (go1.getChoice() == 0) {
+					p[0].points = 0;
+					return 0;
+				}
 			}
 		}
 		if (event.type == sf::Event::KeyPressed)
